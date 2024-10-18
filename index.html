@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="btn"> click</button>
+    <h2 id="data"></h2>
+    <script>
+        const dataText = document.getElementById('data');
+        const button = document.getElementById("btn");
+        button.addEventListener('click', () => {
+            fetch('http://localhost:3000/data', {
+                method: 'GET',
+                headers: {
+                    'Origin': 'http://localhost:3000',
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    console.log('Response Headers:', [...response.headers.entries()]);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data)
+                    dataText.innerHTML=data?.message
+                })
+                .catch(error => console.error('Error:', error));
+        })
+        
+        
+
+    </script>
+
+</body>
+
+</html>
