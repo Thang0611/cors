@@ -1,41 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>CORS Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .button-container {
+            display: grid;
+            gap: 1rem;
+        }
+        button {
+            background-color: #4299e1;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.75rem 1rem;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #3182ce;
+        }
+        #result {
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            white-space: pre-wrap;
+        }
+    </style>
 </head>
-
 <body>
-    <button id="btn"> click</button>
-    <h2 id="data"></h2>
+    <div class="container">
+        <h1>CORS Demo</h1>
+        <div class="button-container">
+            <button onclick="makeRequest('simple')">Simple Request</button>
+            <button onclick="makeRequest('preflight')">Preflighted Request</button>
+            <button onclick="makeRequest('redirect')">Preflighted Request with Redirect</button>
+            <button onclick="makeRequest('credentials')">Request with Credentials</button>
+            <button onclick="makeRequest('preflightCredentials')">Preflight Request with Credentials</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
     <script>
-        const dataText = document.getElementById('data');
-        const button = document.getElementById("btn");
-        button.addEventListener('click', () => {
-            fetch('http://localhost:3000/data', {
-                method: 'GET',
-                headers: {
-                    'Origin': 'http://localhost:3000',
-                    'Content-Type': 'application/json'
+        const API_BASE_URL = 'http://localhost:3000';   
+
+        async function makeRequest(type) {
+            const resultElement = document.getElementById('result');
+            resultElement.textContent = 'Loading...';
+
+            try {
+                let response;
+                switch (type) {
+                    case 'simple':
+                        response = await fetch(`${API_BASE_URL}/simple`);
+                        break;
+                    case 'preflight':
+                        response = await fetch(`${API_BASE_URL}/preflight`, 
+                        {
+                            method: 'GET',
+                            headers: {
+                                "X-PINGOTHER":"ping",
+                            },
+                        }
+                    );
+                        break;
+                    case 'redirect':
+                        response = await fetch(`${API_BASE_URL}/redirect`, {
+                            method: 'GET',
+                            headers: {
+                                "X-PINGOTHER":"ping",
+                                'Content-Type': 'application/json'
+                            },
+                            redirect: 'follow' 
+                        });
+                        break;
+                    case 'credentials':
+                        response = await fetch(`${API_BASE_URL}/credentials`, {
+                            credentials: 'include'
+                        });
+                        break;
+                    case 'preflightCredentials':
+                        response = await fetch(`${API_BASE_URL}/preflight-credentials`, {
+                            method: 'POST',
+                            headers: {
+                                "X-PINGOTHER":"ping",
+                            },
+                            credentials: 'include'
+                        });
+                        break;
                 }
-            })
-                .then(response => {
-                    console.log('Response Headers:', [...response.headers.entries()]);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log(data)
-                    dataText.innerHTML=data?.message
-                })
-                .catch(error => console.error('Error:', error));
-        })
-        
-        
 
+                const data = await response.json();
+                resultElement.textContent = JSON.stringify(data?.message, null, 2);
+            } catch (error) {
+                resultElement.textContent = `Error: ${error.message}`;
+            }
+        }
     </script>
-
 </body>
-
 </html>
